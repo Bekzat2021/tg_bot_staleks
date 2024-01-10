@@ -64,6 +64,50 @@ public class db_connection {
         return true;
     }
 
+    public static boolean insertStandardPhoto(Long userId, String imageName, String imagePath){
+        PreparedStatement insertPhoto=null;
+        ResultSet rs=null;
+        Connection conn=connect();
+        if (conn!=null){
+            try {
+                String insertStandPhoto="INSERT INTO standards(user_id, image_name, image_path)" +
+                        "VALUES(?, ?, ?);";
+                insertPhoto=conn.prepareStatement(insertStandPhoto);
+                insertPhoto.setLong(1, userId);
+                insertPhoto.setString(2, imageName);
+                insertPhoto.setString(3, imagePath);
+
+                rs=insertPhoto.executeQuery();
+                if (rs.next()){
+                    return true;
+                }
+            }catch (SQLException exception){
+                System.out.println(exception.getMessage());
+            }finally {
+                try{
+                    conn.close();
+                }catch (SQLException exception){
+                    System.out.println(exception.getMessage());
+                }
+                if (insertPhoto!=null){
+                    try{
+                        insertPhoto.close();
+                    }catch (SQLException exception){
+                        System.out.println(exception.getMessage());
+                    }
+                }
+                if (rs!=null){
+                    try {
+                        rs.close();
+                    }catch (SQLException exception){
+                        System.out.println(exception.getMessage());
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public static String userDept(Long user_id){
         PreparedStatement findByIdStmt=null;
         ResultSet rs_set=null;
@@ -103,6 +147,23 @@ public class db_connection {
             }
         }
         return null;
+    }
+
+    public static Long getUserId(Long userId){
+        if (connect()!=null){
+            String findById="SELECT * FROM users WHERE telegram_id="+userId+";";
+            try{
+                Statement stmt=connect().createStatement();
+                ResultSet rs_set=stmt.executeQuery(findById);
+                if (rs_set.next()){
+                    return rs_set.getLong("id");
+                }
+            }catch (SQLException exception){
+                System.out.println(exception.getMessage());
+            }
+
+        }
+        return -1L;
     }
 
     public static boolean isUserRegistred(Long userId){

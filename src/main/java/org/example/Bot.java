@@ -121,6 +121,9 @@ public class Bot extends TelegramLongPollingBot {
             DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("dd-MM-yyyy HH-mm-ss");
             var t1=downloadFile(file, new java.io.File("src/main/resources/photos"+
                     update.getMessage().getFrom().getId()+localDateTime.format(dateTimeFormatter)+ ".png"));
+            db_connection.insertStandardPhoto(db_connection.getUserId(update.getMessage().getFrom().getId()),
+                    "src/main/resources/photos/",
+                    update.getMessage().getFrom().getId()+localDateTime.format(dateTimeFormatter)+ ".png");
         }catch (TelegramApiException exception){
             System.out.println(exception.getMessage());
         }
