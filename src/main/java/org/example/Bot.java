@@ -108,7 +108,7 @@ public class Bot extends TelegramLongPollingBot {
         return false;
     }
 
-    public void savePhoto(Update update){
+    public void savePhoto(Update update, boolean brak, boolean standard){
         List<PhotoSize> photos= update.getMessage().getPhoto();
 
         String fileId=photos.stream().sorted(Comparator.comparing(PhotoSize::getFileSize)
@@ -121,9 +121,9 @@ public class Bot extends TelegramLongPollingBot {
             DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("dd-MM-yyyy HH-mm-ss");
             var t1=downloadFile(file, new java.io.File("src/main/resources/photos"+
                     update.getMessage().getFrom().getId()+localDateTime.format(dateTimeFormatter)+ ".png"));
-            db_connection.insertStandardPhoto(db_connection.getUserId(update.getMessage().getFrom().getId()),
-                    "src/main/resources/photos/",
-                    update.getMessage().getFrom().getId()+localDateTime.format(dateTimeFormatter)+ ".png");
+            db_connection.insertPhoto(db_connection.getUserId(update.getMessage().getFrom().getId()),
+                    update.getMessage().getFrom().getId()+localDateTime.format(dateTimeFormatter)+ ".png",
+                    "src/main/resources/photos/", standard);
         }catch (TelegramApiException exception){
             System.out.println(exception.getMessage());
         }
@@ -197,16 +197,27 @@ public class Bot extends TelegramLongPollingBot {
                 && !isRegistred(update) && update.getMessage().getText().equals("/start")){
             sendMessage(update.getMessage().getChatId(), "Вы не зарегистрированы. Выбирете отдел: ", deptSelectKb());
 
-        } else if(update.hasMessage() && (brak || standard)){
+        } else if(update.hasMessage() && brak) {
+            if (update.getMessage().hasPhoto()) {
+                savePhoto(update, brak, standard);
+                brak = false;
+                standard = false;
+                sendMessage(update.getMessage().getChatId(), "Фото брака успешно сохранено.");
+            } else {
+                sendMessage(update.getMessage().getChatId(), "Отправьте фото брака");
+                brak = true;
+                standard = false;
+            }
+        }else if (update.hasMessage() && standard){
             if (update.getMessage().hasPhoto()){
-                savePhoto(update);
+                savePhoto(update, brak, standard);
                 brak=false;
                 standard=false;
-                sendMessage( update.getMessage().getChatId(),"Фото успешно сохранено.");
+                sendMessage(update.getMessage().getChatId(), "Фото стандарта успешно сохранено.");
             }else {
-                sendMessage( update.getMessage().getChatId(),"Отправьте фото брака/стандарта");
-                brak=true;
-                standard=false;
+                sendMessage(update.getMessage().getChatId(), "Отправьте фото стандарта");
+                brak = false;
+                standard = true;
             }
         }else if (isRegistred(update)) {
             sendMessage(update.getMessage().getChatId(), "Что вы хотите ввести?",

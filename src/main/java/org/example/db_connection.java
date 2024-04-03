@@ -1,8 +1,6 @@
 package org.example;
 
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-
-import javax.xml.transform.Result;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.Properties;
 
@@ -63,19 +61,26 @@ public class db_connection {
         }
         return true;
     }
+    enum imgType{
 
-    public static boolean insertStandardPhoto(Long userId, String imageName, String imagePath){
+    }
+
+    public static boolean insertPhoto(Long userId, String imageName, String imagePath, Boolean isStandard){
+        String img_type="defect";
+        if (isStandard)
+            img_type="standard";
         PreparedStatement insertPhoto=null;
         ResultSet rs=null;
         Connection conn=connect();
         if (conn!=null){
             try {
-                String insertStandPhoto="INSERT INTO standards(user_id, image_name, image_path)" +
-                        "VALUES(?, ?, ?);";
+                String insertStandPhoto="INSERT INTO standards_defects(user_id, image_name, image_path, img_type)" +
+                        "VALUES(?, ?, ?, ?);";
                 insertPhoto=conn.prepareStatement(insertStandPhoto);
                 insertPhoto.setLong(1, userId);
                 insertPhoto.setString(2, imageName);
                 insertPhoto.setString(3, imagePath);
+                insertPhoto.setObject(4, img_type, Types.OTHER);
 
                 rs=insertPhoto.executeQuery();
                 if (rs.next()){
